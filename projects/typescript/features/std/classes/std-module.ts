@@ -98,7 +98,7 @@ export default class StdModule {
 
         $assert(!await this.existsType(name), Errors.TypeAlreadyExists, { type: name, module: this.name });
 
-        await writeFile(this.subpath("types", `${name}.ts`), 
+        await writeFile(this.subpath("types", `${name}.type.ts`), 
             `export type ${StringUtils.pascalCase(name)} = {\n` + 
             "\n" +
             "};"
