@@ -49,3 +49,6 @@ This is a modular CLI framework called "X" that provides project scaffolding and
 
 ### Feature Examples
 Available TypeScript project features include: chroma (embeddings), crypto, errors, fs (file handling), generator (plop-based), logs, openai, queue, std (utilities), timeline.
+
+### Feedback
+- When creating a new empty feature, don't put anything outside the feature/{name} directory unless explicitly required
