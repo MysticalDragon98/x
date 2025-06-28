@@ -106,4 +106,5 @@ export default class StdModule {
 
         await this.#feature.config.addType(this.name, name);
     }
+    
 }

@@ -52,3 +52,4 @@ Available TypeScript project features include: chroma (embeddings), crypto, erro
 
 ### Feedback
 - When creating a new empty feature, don't put anything outside the feature/{name} directory unless explicitly required
+- When you need to access some feature from another feature, ensure the feature is injected in the feature definition class

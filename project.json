@@ -1,0 +1,15 @@
+{
+    "type": "typescript",
+    "features": {
+        "generator": "0.0.1",
+        "errors": "0.0.1",
+        "timeline": "0.0.0",
+        "env": "0.0.7",
+        "logs": "0.0.1",
+        "crypto": "0.0.1",
+        "openai": "0.0.2"
+    },
+    "folders": {
+        "metadata": ".meta"
+    }
+}

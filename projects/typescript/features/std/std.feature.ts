@@ -9,6 +9,7 @@ import { StdConfig } from "./classes/std-config";
 import debug from "debug";
 import StdModule from "./classes/std-module";
 import { join } from "path";
+import { FsUtils } from "@/src/modules/utils/fs-utils";
 
 const log = debug("@features/std");
 

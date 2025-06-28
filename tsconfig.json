@@ -7,7 +7,28 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "outDir": "dist",
-        "experimentalDecorators": true
+        "experimentalDecorators": true,
+        "baseUrl": ".",
+        "paths": {
+            "@/*": [
+                "*"
+            ],
+            "@features/*": [
+                "features/*"
+            ],
+            "@src/*": [
+                "src/*"
+            ],
+            "@modules/*": [
+                "src/modules/*"
+            ],
+            "@mongo/*": [
+                "src/modules/*"
+            ],
+            "@characters/*": [
+                "src/modules/*"
+            ]
+        }
     },
     "include": [
         "index.ts",
@@ -15,5 +36,9 @@
         "plugins/**/*.ts",
         "src/**/*.ts",
         "projects/**/*.ts"
+    ],
+    "exclude": [
+        "**/scaffolding/**/*"
     ]
+    
 }
