@@ -1,0 +1,32 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "module": "commonjs",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "outDir": "dist",
+        "experimentalDecorators": true,
+        "baseUrl": ".",
+        "paths": {
+            "@/*": [
+                "*"
+            ],
+            "@features/*": [
+                "features/*"
+            ],
+            "@src/*": [
+                "src/*"
+            ],
+            "@modules/*": [
+                "src/modules/*"
+            ]
+        }
+    },
+    "include": [
+        "index.ts",
+        "src/**/*.ts",
+        "features/**/*.ts"
+    ]
+}
