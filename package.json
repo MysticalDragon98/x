@@ -21,8 +21,10 @@
         "chalk": "^4.1.2",
         "debug": "^4.4.0",
         "dotenv": "^17.0.0",
+        "ethereumjs-util": "^7.1.5",
         "minimist": "^1.2.8",
         "node-plop": "^0.32.0",
-        "openai": "^5.8.2"
+        "openai": "^5.8.2",
+        "tsconfig-paths": "^4.2.0"
     }
 }
