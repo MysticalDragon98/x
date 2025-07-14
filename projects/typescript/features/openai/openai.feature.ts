@@ -13,7 +13,7 @@ export default class OpenAIFeature extends Feature<TypescriptProject> {
     readonly #crypto = this.inject(CryptoFeature);
 
     name () { return "openai"; }
-    version () { return "0.0.2"; }
+    version () { return "0.0.3"; }
 
     async init () {
         await this.project.install(["openai"]);

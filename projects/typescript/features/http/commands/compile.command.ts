@@ -20,61 +20,16 @@ export default async function compileCommand(
             });
         }
 
-        // Initialize OpenAI
         await OpenAIFeature.init({ apiKey: Environment.OpenAiKey });
-
-        const module = feature.std.module(moduleName);
-        // Find the endpoint function file
-        const endpointFilePath = module.subpath("http", `${endpoint}.http-endpoint.ts`);
-        
-        let endpointContent: string;
-        try {
-            endpointContent = await readFile(endpointFilePath, "utf-8");
-        } catch (error) {
-            return CLIResult.error({
-                FileNotFound: `Endpoint file not found: ${endpointFilePath}`
-            });
-        }
-
-        // Use HTTPEndpointTypeInferrerMindset to generate types and metadata
-        const result = await OpenAIFeature.prompt<{ typeOutput: string, paramsOutput: string, typeName: string }>(
-            HTTPEndpointTypeInferrerMindset,
-            endpointContent
-        );
-
-        const typeDefinition = result.typeOutput;
-        const zodDefinition = await feature.zod.parseTSDefinition(typeDefinition, { anonymous: true });
-
-        // Create output directory structure
-        await FsUtils.createTree({
-            [feature.workdirFeatureSubpath("endpoints")]: [moduleName]
-        });
-
-        // Write the generated file
-        const outputFile = feature.workdirFeatureSubpath("endpoints", `${moduleName}/${endpoint}.http-meta.ts`);
-        await writeFile(outputFile,
-            `import ${endpoint} from '@/src/modules/${moduleName}/http/${endpoint}.http-endpoint';\n` +
-            "import { HTTPEndpoint } from '../../classes/http-endpoint.class';\n" +
-            "import * as z from 'zod/v4';\n\n" +
-            result.typeOutput + "\n\n" +
-            result.paramsOutput + "\n\n" +
-            `const Validator = ${zodDefinition};\n\n` + 
-            `export default new HTTPEndpoint<${result.typeName}>({\n` +
-            "    inputValidator: Validator,\n" +
-            "    params: Params,\n" +
-            `    exec: ${endpoint}\n` +
-            "});"
-        );
-
+        await feature.compile(moduleName, endpoint);
         // Open the generated file in VS Code
-        await vscodeOpen(outputFile);
+        // await vscodeOpen(outputFile);
 
         return CLIResult.success(
             `✨ Successfully compiled HTTP endpoint metadata for ${moduleName}:${endpoint}`,
             {
                 module,
-                endpoint,
-                outputFile
+                endpoint
             }
         );
     } catch (error) {

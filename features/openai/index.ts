@@ -15,6 +15,7 @@ export default class OpenAIFeature {
     static #openai: OpenAI;
 
     static init ({ apiKey }: { apiKey: string }) {
+        if (this.#openai) return;
         this.#openai = new OpenAI({ apiKey });
         this.#logger.ok("OpenAI module initialized");
     }

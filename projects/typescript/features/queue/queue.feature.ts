@@ -4,7 +4,7 @@ import { Feature } from "../../../../src/modules/projects/feature";
 export default class QueueFeature extends Feature<TypescriptProject> { 
 
     name () { return "queue"; }
-    version () { return "1.0.0"; }
+    version () { return "1.0.2"; }
 
     async init () {
         

@@ -3,6 +3,7 @@ import { writeFile } from "fs/promises";
 import HttpFeature from "../http.feature";
 import TypescriptProject from "@/projects/typescript";
 import { FsUtils } from "@/src/modules/utils/fs-utils";
+import vscodeOpen from "@/src/modules/vscode/vscodeOpen";
 
 export default async function endpointCommand(
     [moduleName, endpointName]: string[],
@@ -40,6 +41,7 @@ export default async function endpointCommand(
 
         // Write the endpoint file
         await writeFile(endpointFilePath, endpointContent);
+        await vscodeOpen(endpointFilePath);
 
         return CLIResult.success(
             `✨ Successfully created HTTP endpoint: ${endpointName}`,
