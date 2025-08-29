@@ -8,11 +8,14 @@ export class CustomError extends Error {
     }
 }
 
-export function CustomErrors (errors: Record<string, string>) {
-    const customErrors: Record<string, CustomError> = {};
+export function CustomErrors (errors: Record<string, ((...args: any[]) => string) | string>) {
+    const customErrors: Record<string, (...args: any[]) => CustomError> = {};
 
     for (const [code, message] of Object.entries(errors)) {
-        customErrors[code] = new CustomError(code, message);
+        if (typeof message === 'string')
+            customErrors[code] = (...args: any[]) => new CustomError(code, parseTextTemplate(message, args));
+        else
+            customErrors[code] = (...args: any[]) => new CustomError(code, message(...args));
     }
 
     return customErrors;
@@ -48,8 +51,16 @@ export const $parseError = (error: CustomError, data?: string | object) => {
 }
 
 export const $throw = (error: CustomError, data?: string | object) => {
-    const code = error.code;
-    const message = parseTextTemplate(error.message, data ?? {});
+    const code = error.code 
+    const message = data ? parseTextTemplate(error.message, data ?? {}) : error.message;
 
     throw new CustomError(code, message);
+}
+
+export async function $shouldFail<T> (promise: Promise<T>, error: CustomError) {
+    try {
+        await promise;
+    } catch (exc) { return; }
+    
+    throw error;
 }

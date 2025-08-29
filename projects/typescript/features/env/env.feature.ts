@@ -65,7 +65,7 @@ export default class EnvFeature extends Feature<TypescriptProject> {
         });
 
         if (required) {
-            await envLib.insertTagLine("Checks", `$assert(typeof Environment.${varname} !== 'undefined', EnvErrors.EnvvarNotFound, { name: '${name}' });`);
+            await envLib.insertTagLine("Checks", `$assert(typeof Environment.${varname} !== 'undefined', EnvErrors.EnvvarNotFound('${name}'));`);
         }
     }
 }

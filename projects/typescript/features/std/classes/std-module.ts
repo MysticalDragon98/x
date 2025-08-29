@@ -7,8 +7,10 @@ import debug from "debug";
 import { join } from "path";
 
 const Errors = CustomErrors({
-    ModuleAlreadyExists: "The module {module} already exists.",
-    EnumAlreadyExists: "The enum {enum} already exists in module {module}."
+    ModuleAlreadyExists: (module) => `The module ${module} already exists.`, 
+    EnumAlreadyExists: (_enum, module) => `The enum ${_enum} already exists in module ${module}.`,
+    ClassAlreadyExists: (_class, module) => `The class ${_class} already exists in module ${module}.`,
+    TypeAlreadyExists: (_type, module) => `The type ${_type} already exists in module ${module}.`,
 });
 
 const log = debug("@features/std");
@@ -35,7 +37,7 @@ export default class StdModule {
     async addEnum (name: string) {
         log(`Adding enum ${name} to module ${this.name}`);
 
-        $assert(!await this.existsEnum(name), Errors.EnumAlreadyExists, { enum: name, module: this.name });
+        $assert(!await this.existsEnum(name), Errors.EnumAlreadyExists(name, this.name));
 
         await writeFile(this.subpath("enums", `${name}.enum.ts`), 
             `export enum ${StringUtils.pascalCase(name)} {\n` +
@@ -49,7 +51,7 @@ export default class StdModule {
     async addClass (name: string) {
         log(`Adding class ${name} to module ${this.name}`);
 
-        $assert(!await this.existsClass(name), Errors.ClassAlreadyExists, { class: name, module: this.name });
+        $assert(!await this.existsClass(name), Errors.ClassAlreadyExists(name, this.name));
 
         await writeFile(this.subpath("classes", `${name}.ts`), 
             `export class ${StringUtils.pascalCase(name)} {\n` +
@@ -68,7 +70,7 @@ export default class StdModule {
 
     static async create (feature: StdFeature, name: string) {
         log(`Creating module ${name}`);
-        $assert(!await feature.config.existsModule(name), Errors.ModuleAlreadyExists, { module: name });
+        $assert(!await feature.config.existsModule(name), Errors.ModuleAlreadyExists(name));
 
         await feature.config.addModule(name);
         log(`Creating module directory tree`);
@@ -96,7 +98,7 @@ export default class StdModule {
     async addType (name: string) {
         log(`Adding type ${name} to module ${this.name}`);
 
-        $assert(!await this.existsType(name), Errors.TypeAlreadyExists, { type: name, module: this.name });
+        $assert(!await this.existsType(name), Errors.TypeAlreadyExists(name, this.name));
 
         await writeFile(this.subpath("types", `${name}.type.ts`), 
             `export type ${StringUtils.pascalCase(name)} = {\n` + 
