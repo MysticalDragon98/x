@@ -2,8 +2,8 @@ import { statSync } from "fs";
 import { Cache } from "../cache/cache";
 import { join, resolve } from "path";
 import { $assert, $throw } from "../errors";
-import { bold, green } from "chalk";
 import { Project } from "./project";
+const { bold, green } = require("chalk");
 
 const Errors = {
     ProjectTypeNotFound: { ProjectTypeNotFound: "The project type {projectType} was not found." },

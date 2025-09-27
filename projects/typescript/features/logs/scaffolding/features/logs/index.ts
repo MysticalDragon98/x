@@ -1,7 +1,8 @@
 import debug from "debug";
 import { Logger } from "./types/Logger.type";
-import { bold, green, red, yellow } from "chalk";
 import { Environment } from "@features/env";
+
+const { bold, green, red, yellow } = require("chalk");
 
 export default class LogsFeature {
     static #logger = LogsFeature.logger("@modules/logs");

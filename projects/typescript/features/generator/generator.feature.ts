@@ -25,7 +25,7 @@ export default class GeneratorFeature extends Feature<TypescriptProject> {
     }
 
     async generate (name: string, args: string[] = []) {
-        return await Shell.exec(`pnpm g ${name} ${args.join(" ")}`);
+        return await Shell.exec(`bun g ${name} ${args.join(" ")}`);
     }
 
 }

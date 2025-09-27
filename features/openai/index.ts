@@ -65,5 +65,15 @@ export default class OpenAIFeature {
 
         return choice.choices[0];
     }
+
+    static async tts (text: string) {
+        const result = await OpenAIFeature.#openai.audio.speech.create({
+            model: "gpt-4o-mini-tts",
+            input: text,
+            voice: "marin"
+        });
+
+        return result.arrayBuffer();
+    }
     
 }

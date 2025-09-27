@@ -20,21 +20,17 @@ export default class TypescriptProject extends Project {
     async init () {
         const cwd = this.workdirSubpath();
 
-        log(`Initializing pnpm project`)
-        await Shell.exec("pnpm init", { cwd });
+        log(`Initializing bun project`)
+        await Shell.exec("bun init -y", { cwd });
         
         await this.installDev([
-            "typescript",
-            "ts-node",
-            "ts-node-dev",
-            "@types/node",
-            "tsconfig-paths"
+            "@types/node"
         ]);
 
         await this.addScripts({
             "build": "tsc",
-            "dev": "ts-node-dev --respawn --transpile-only index.ts",
-            "start": "ts-node -r tsconfig-paths/register index.ts",
+            "dev": "bun --hot index.ts",
+            "start": "bun index.ts",
         });
     }
 
@@ -57,14 +53,14 @@ export default class TypescriptProject extends Project {
         const cwd = this.workdirSubpath();
         log(`Installing typescript dependencies: ${dependencies.join(", ")}`);
 
-        await Shell.exec(`pnpm add ${dependencies.join(" ")}`, { cwd });
+        await Shell.exec(`bun add ${dependencies.join(" ")}`, { cwd });
     }
 
     async installDev (dependencies: string[]) {
         const cwd = this.workdirSubpath();
         log(`Installing typescript dev dependencies: ${dependencies.join(", ")}`);
 
-        await Shell.exec(`pnpm add -D ${dependencies.join(" ")}`, { cwd });
+        await Shell.exec(`bun add -D ${dependencies.join(" ")}`, { cwd });
     }
 
 }

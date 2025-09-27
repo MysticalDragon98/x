@@ -1,0 +1,2 @@
+#!/bin/bash
+bun /home/camilotd/src/x/cli.ts $@

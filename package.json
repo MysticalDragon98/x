@@ -17,8 +17,9 @@
         "typescript": "^5.8.3"
     },
     "dependencies": {
+        "@types/bun": "^1.2.21",
         "@types/minimist": "^1.2.5",
-        "chalk": "^4.1.2",
+        "chalk": "4",
         "debug": "^4.4.0",
         "dotenv": "^17.0.0",
         "ethereumjs-util": "^7.1.5",
