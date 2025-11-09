@@ -11,6 +11,7 @@ const Errors = CustomErrors({
     EnumAlreadyExists: (_enum, module) => `The enum ${_enum} already exists in module ${module}.`,
     ClassAlreadyExists: (_class, module) => `The class ${_class} already exists in module ${module}.`,
     TypeAlreadyExists: (_type, module) => `The type ${_type} already exists in module ${module}.`,
+    FunctionAlreadyExists: (_function, module) => `The function ${_function} already exists in module ${module}.`,
 });
 
 const log = debug("@features/std");
@@ -75,7 +76,7 @@ export default class StdModule {
         await feature.config.addModule(name);
         log(`Creating module directory tree`);
         await FsUtils.createTree({
-            [`src/modules/${name}`]: ["types", "classes", "tests", "enums"]
+            [`src/modules/${name}`]: ["types", "classes", "tests", "enums", "fn"]
         });
         
         log(`Creating module index file`);
@@ -95,6 +96,12 @@ export default class StdModule {
         return !!config.modules[this.name].types[name];
     }
 
+    async existsFunction (name: string) {
+        const config = await this.#feature.config.read();
+
+        return !!config.modules[this.name].functions[name];
+    }
+
     async addType (name: string) {
         log(`Adding type ${name} to module ${this.name}`);
 
@@ -107,6 +114,18 @@ export default class StdModule {
         );
 
         await this.#feature.config.addType(this.name, name);
+    }
+
+    async addFunction (name: string) {
+        $assert(!await this.existsFunction(name), Errors.FunctionAlreadyExists(name, this.name));
+
+        await writeFile(this.subpath("fn", `${name}.ts`), 
+            `export async function ${StringUtils.camelCase(name)} () {\n` + 
+            "    \n" +
+            "}"
+        );
+
+        await this.#feature.config.addFunction(this.name, name);
     }
     
 }

@@ -11,6 +11,10 @@ export type StdConfigData = {
 
         }>,
         types: Record<string, {
+        }>,
+
+        functions: Record<string, { 
+
         }>
     }>
 };
@@ -31,6 +35,7 @@ export class StdConfig {
             if (!content.modules[module].classes) content.modules[module].classes = {};
             if (!content.modules[module].enums) content.modules[module].enums = {};
             if (!content.modules[module].types) content.modules[module].types = {};
+            if (!content.modules[module].functions) content.modules[module].functions = {};
         }
 
         return content;
@@ -77,6 +82,15 @@ export class StdConfig {
         const content = await this.read();
 
         content.modules[module].types[name] = {};
+
+        await this.#file.write(content);
+    }
+
+    async addFunction (module: string, name: string) {
+        log(`Adding function ${name} to module ${module} to the std config`);
+        const content = await this.read();
+
+        content.modules[module].functions[name] = {};
 
         await this.#file.write(content);
     }

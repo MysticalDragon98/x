@@ -71,4 +71,10 @@ export default class StdFeature extends Feature<TypescriptProject> {
 
         await module.addType(name);
     }
+
+    async addFunction (moduleName: string, name: string) {
+        const module = this.module(moduleName);
+
+        await module.addFunction(name);
+    }
 }

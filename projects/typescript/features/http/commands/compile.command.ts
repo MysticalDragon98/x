@@ -28,7 +28,7 @@ export default async function compileCommand(
         return CLIResult.success(
             `✨ Successfully compiled HTTP endpoint metadata for ${moduleName}:${endpoint}`,
             {
-                module,
+                moduleName,
                 endpoint
             }
         );

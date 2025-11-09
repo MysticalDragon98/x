@@ -16,4 +16,10 @@ export class StringUtils {
     static upperSnakeCase (text: string) {
         return this.snakeCase(text).toUpperCase();
     }
+
+    static camelCase (text: string) {
+        return text
+            .replace(/([-_][a-z])/g, (group) => group.toUpperCase().replace('-', '').replace('_', ''))
+            .replace(/^[A-Z]/, (c) => c.toLowerCase())
+    }
 }

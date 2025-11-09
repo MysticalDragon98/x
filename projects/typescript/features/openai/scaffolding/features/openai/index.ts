@@ -1,7 +1,6 @@
 import { OpenAI } from "openai";
 import { EmbeddingsModel } from "./enums/EmbeddingsModel.enum";
 import { Mindset } from "./classes/mindset";
-import { ConversationRole } from "./enums/ConversationRole.enum";
 import { Crypto } from "@features/crypto";
 import { Embeddings } from "./classes/Embeddings";
 import LogsFeature from "@features/logs";
@@ -46,6 +45,7 @@ export default class OpenAIFeature {
         const choice = await this.#openai.chat.completions.create({
             model: mindset.model,
             messages,
+            reasoning_effort: mindset.reasoning ?? "minimal",
             response_format: mindset.schema && {
                 type: "json_schema",
                 json_schema: {
@@ -64,6 +64,19 @@ export default class OpenAIFeature {
         });
 
         return choice.choices[0];
+    }
+
+    static async webSearch (mindset: Mindset, query: string) {
+        const result = await OpenAIFeature.#openai.responses.create({
+            model: mindset.model,
+            reasoning: mindset.reasoning && {
+                effort: mindset.reasoning
+            },
+            tools: [{ type: "web_search" }],
+            input: `${mindset.intent}: ${query}`
+        });
+
+        return result.output_text;
     }
 
     static async tts (text: string) {
