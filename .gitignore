@@ -2,3 +2,5 @@ node_modules
 dist
 .env
 .meta/identity
+node_modules
+!projects/ags/scaffolding/node_modules

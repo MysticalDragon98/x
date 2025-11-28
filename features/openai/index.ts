@@ -8,13 +8,14 @@ import LogsFeature from "@features/logs";
 import { Toolset } from "./classes/Toolset";
 import { Conversation } from "./classes/Conversation";
 import { ChatCompletionMessageParam } from "openai/resources/chat";
+import { Environment } from "../env";
 
 export default class OpenAIFeature {
 
     static #logger = LogsFeature.logger("@modules/openai");
     static #openai: OpenAI;
 
-    static init ({ apiKey }: { apiKey: string }) {
+    static init ({ apiKey }: { apiKey: string } = { apiKey: Environment.OpenAiKey }) {
         if (this.#openai) return;
         this.#openai = new OpenAI({ apiKey });
         this.#logger.ok("OpenAI module initialized");

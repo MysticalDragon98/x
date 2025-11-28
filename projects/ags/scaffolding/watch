@@ -1,0 +1,9 @@
+#!/bin/bash
+
+ags quit
+ags run app.tsx &
+while inotifywait -e modify -e create -e delete -e move -r ./app.tsx ./components ./modules ./style.css; do
+    ags quit
+    echo "Change detected. Rebuilding..."
+    ags run app.tsx &
+done

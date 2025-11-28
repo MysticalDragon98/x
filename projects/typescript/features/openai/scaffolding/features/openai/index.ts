@@ -7,13 +7,14 @@ import LogsFeature from "@features/logs";
 import { Toolset } from "./classes/Toolset";
 import { Conversation } from "./classes/Conversation";
 import { ChatCompletionMessageParam } from "openai/resources/chat";
+import { Environment } from "../env";
 
 export default class OpenAIFeature {
 
     static #logger = LogsFeature.logger("@modules/openai");
     static #openai: OpenAI;
 
-    static init ({ apiKey }: { apiKey: string }) {
+    static init (apiKey: string = Environment.OpenAiKey) {
         if (this.#openai) return;
         this.#openai = new OpenAI({ apiKey });
         this.#logger.ok("OpenAI module initialized");
@@ -41,11 +42,40 @@ export default class OpenAIFeature {
         return choice?.message.content as T;
     }
 
+    static async imageAnalysis ({ mindset, prompt, image }: { mindset: Mindset, prompt: string, image: string }) {
+        const choice = await this.#openai.responses.create({
+            model: mindset.model,
+
+            input: [
+                {
+                    type: "message",
+                    role: "system",
+                    content: mindset.intent
+                },
+                {
+                    type: "message",
+                    role: "user",
+                    content: [
+                        { type: "input_text", text: prompt },
+                        {
+                            type: "input_image",
+                            image_url: `data:image/webp;base64,${image}`,
+                            detail: "auto"
+                        }
+                    ]
+                }
+            ],
+        });
+
+        return choice.output_text;
+    }
+
     static async chatCompletion (mindset: Mindset, messages: ChatCompletionMessageParam[], tools?: Toolset) {
         const choice = await this.#openai.chat.completions.create({
             model: mindset.model,
             messages,
-            reasoning_effort: mindset.reasoning ?? "minimal",
+            
+            reasoning_effort: mindset.reasoning,
             response_format: mindset.schema && {
                 type: "json_schema",
                 json_schema: {
@@ -79,14 +109,28 @@ export default class OpenAIFeature {
         return result.output_text;
     }
 
-    static async tts (text: string) {
+    static async tts (text: string, instructions?: string) {
         const result = await OpenAIFeature.#openai.audio.speech.create({
             model: "gpt-4o-mini-tts",
             input: text,
-            voice: "marin"
+            voice: "marin",
+            instructions
         });
 
         return result.arrayBuffer();
     }
     
+    static async stt (audio: Buffer) {
+        const bytes = new Uint8Array(audio.buffer, audio.byteOffset, audio.byteLength);
+        const file = await OpenAI.toFile(bytes, "audio.wav", { type: "audio/wav" });
+
+        const result = await OpenAIFeature.#openai.audio.transcriptions.create({
+            model: "whisper-1",
+            file,
+            language: "es"
+        });
+
+        return result.text;
+    }
+
 }

@@ -24,10 +24,16 @@ export class AudioStream {
 
     destroy () {
         this.child.kill();
+        this.stream.removeListener("data", this.onData);
     }
 
     onData (cb: (chunk: AudioChunk) => any) {
         this.stream.on("data", cb);
+        return cb;
+    }
+
+    removeListeners (listeners: any[]) {
+        listeners.forEach(listener => this.stream.removeListener("data", listener));
     }
 
     setupListeners () {
@@ -39,6 +45,8 @@ export class AudioStream {
             }
 
         }));
+
+        this.child.stderr!.pipe(process.stderr);
     }
 
 }

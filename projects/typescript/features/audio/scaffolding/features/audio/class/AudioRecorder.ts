@@ -12,18 +12,21 @@ export class AudioRecorder {
 
     status: RecordingStatus = RecordingStatus.Stopped;
     chunks: AudioChunk[] = [];
+    listeners: any[] = [];
     #onComplete?: (() => any)[] = [];
 
-    protected constructor (private stream: AudioStream, private options: { destroyOnStop?: boolean } = {}) {
+    constructor (private stream: AudioStream, private options: { destroyOnStop?: boolean } = {}) {
         this.setupListeners();
     }
 
     setupListeners () {
-        this.stream.onData(this.#onData.bind(this));
+        this.listeners.push(
+            this.stream.onData(this.#onData.bind(this))
+        );
     }
 
     onData (cb: (chunk: AudioChunk) => any) {
-        this.stream.onData(cb);
+        this.listeners.push(this.stream.onData(cb));
     }
 
     start () {
@@ -40,8 +43,12 @@ export class AudioRecorder {
         if (this.options.destroyOnStop) {
             this.stream.destroy();
         }
-
+        this.stream.removeListeners(this.listeners);
         this.#onComplete?.forEach(cb => cb());
+    }
+
+    destroy () {
+        this.stream.removeListeners(this.listeners);
     }
 
     wav () {
@@ -53,7 +60,6 @@ export class AudioRecorder {
     }
 
     #onData (chunk: AudioChunk) {
-        console.log(this.status, this.chunks.length);
         if (this.status === RecordingStatus.Recording) {
             this.chunks.push(chunk);
         }
