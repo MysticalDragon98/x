@@ -82,15 +82,29 @@ export class Schema<T, ID> {
         return result as T;
     }
 
+    serializeMany (data: T[]) {
+        return data.map(item => this.serialize(item));
+    }
+
     serializePartial (data: Partial<T> = {}) {
         const result: Partial<T> = {};
-
+        
         for (const key in this.fields) {
             const field = this.fields[key];
             if (data[key] === undefined) continue;
             
             field.type.validate(data[key]!);
-            result[key] = field.type.serialize(data[key]);
+            if (field.array) {
+                const element: any[] = [];
+                for (const item of data[key] as any) {
+                    element.push(field.type.serialize(item));
+                }
+                result[key] = element as any;
+
+                continue;
+            } else {
+                result[key] = field.type.serialize(data[key]);
+            }
         }
 
         return result;

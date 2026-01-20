@@ -87,7 +87,7 @@ export class VirtualRepository<T, ID> {
         await this.table.delete(id);
     }
 
-    async update (id: ID, item: T) {
+    async update (id: ID, item: Partial<T>) {
         await this.table.update(id, item);
     }
 
