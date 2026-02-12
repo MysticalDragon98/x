@@ -8,7 +8,7 @@ export default class StorageFeature extends Feature<TypescriptProject> {
     readonly errors = this.inject<ErrorsFeature>(ErrorsFeature);
     
     name () { return "storage"; }
-    version () { return "0.0.1"; }
+    version () { return "0.1.1"; }
 
     async init () {}
     

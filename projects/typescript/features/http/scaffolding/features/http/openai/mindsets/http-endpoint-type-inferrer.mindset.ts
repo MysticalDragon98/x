@@ -31,6 +31,8 @@ export const HTTPEndpointTypeInferrerMindset = new Mindset({
             { name: "b", type: "string", required: false },
             { name: "c", type: "number", required: true, default: 2 }
         ];
+
+        (Starting with "const Params = "... is mandatory)
     `,
 
     schema: {

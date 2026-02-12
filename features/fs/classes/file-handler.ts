@@ -1,4 +1,5 @@
 import { Crypto } from "@/features/crypto";
+import { stat } from "fs/promises";
 import { readFile, writeFile } from "fs/promises";
 
 export class FileHandler {
@@ -15,6 +16,19 @@ export class FileHandler {
 
     async write (data: any) {
         await writeFile(this.path, data);
+    }
+
+    async exists () {
+        try {
+            await stat(this.path);
+            return true;
+        } catch (exc: any) {
+            if (exc.code === "ENOENT") {
+                return false;
+            }
+
+            throw exc;
+        }
     }
 
     async map (callback: (data: any) => any) {

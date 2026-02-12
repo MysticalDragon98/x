@@ -5,7 +5,6 @@ import { Schema } from "./Schema";
 import { Store } from "./Store";
 import { $assert, CustomErrors } from "@/features/errors";
 import { FieldType } from "./FieldType";
-import { AsyncNotifier } from "../../async/classes/AsyncNotifier";
 
 const logger = LogsFeature.logger('@storage/table');
 export const TableErrors = CustomErrors({
@@ -18,15 +17,6 @@ export abstract class Table<T, ID> {
     readonly store: Store<any>;
     readonly name: string;
     readonly schema: Schema<T, ID>;
-    
-    readonly $create: AsyncNotifier<T> = new AsyncNotifier();
-    readonly $set: AsyncNotifier<T> = new AsyncNotifier();
-    readonly $update: AsyncNotifier<ID> = new AsyncNotifier();
-    readonly $delete: AsyncNotifier<ID> = new AsyncNotifier();
-    readonly $deleteOne: AsyncNotifier<ID> = new AsyncNotifier();
-    readonly $deleteMany: AsyncNotifier<ID[]> = new AsyncNotifier();
-    readonly $updateOne: AsyncNotifier<ID> = new AsyncNotifier();
-    readonly $updateMany: AsyncNotifier<ID[]> = new AsyncNotifier();
 
     constructor ({ name, schema, store }: { name: string, schema: Schema<T, ID>, store: Store<any> }) {
         this.name = name;
@@ -89,7 +79,6 @@ export abstract class Table<T, ID> {
         const object = this.schema.serialize(data);
         await this._create(object);
 
-        await this.$create.notifyAndWait(data);
         return data;
     }
 
@@ -110,8 +99,6 @@ export abstract class Table<T, ID> {
 
         this.idFieldType().validate(id);
         await this._set(this.idFieldType().serialize(id), this.schema.serialize(data));
-
-        await this.$set.notifyAndWait(data);
     }
 
     async update (id: ID, data: Partial<T>) {
@@ -119,32 +106,24 @@ export abstract class Table<T, ID> {
 
         this.idFieldType().validate(id);
         await this._update(this.idFieldType().serialize(id), this.schema.serializePartial(data));
-
-        await this.$update.notifyAndWait(id);
     }
 
     async delete (id: ID) {
         logger.debug(`Deleting item with id ${id} in table ${this.name}`);
         this.idFieldType().validate(id);
         await this._delete(this.idFieldType().serialize(id));
-
-        await this.$delete.notifyAndWait(id);
     }
 
     async deleteOne (query: TableQuery<T>) {
         logger.debug(`Deleting one item in table ${this.name}`);
         
         const result = await this._deleteOne(query);
-        if (!result) return;
-
-        await this.$deleteOne.notifyAndWait(result);
+        return result;
     }
 
     async deleteMany (query: TableQuery<T>) {
         logger.debug(`Deleting many items in table ${this.name}`);
-        const deletedItems = await this._deleteMany(query);
-
-        await this.$deleteMany.notifyAndWait(deletedItems);
+        return await this._deleteMany(query);
     }
 
     async find (query: TableQuery<T>) {
@@ -165,15 +144,11 @@ export abstract class Table<T, ID> {
         logger.debug(`Updating one item in table ${this.name}`);
         const updatedItem = await this._updateOne(query as any, data);
         if (!updatedItem) return;
-
-        await this.$updateOne.notifyAndWait(updatedItem);
     }
 
     async updateMany (query: TableQuery<T>, data: Partial<T>) {
         logger.debug(`Updating many items in table ${this.name}`);
         const updatedItems = await this._updateMany(query, data);
-
-        await this.$updateMany.notifyAndWait(updatedItems.map(item => this.schema.deserializeId(item) as ID));
     }
 
     async getMany (ids: ID[]) {

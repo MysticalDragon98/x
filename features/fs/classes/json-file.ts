@@ -1,4 +1,3 @@
-import { readFile, writeFile } from "fs/promises";
 import { FileHandler } from "./file-handler";
 
 export class JSONFile extends FileHandler {

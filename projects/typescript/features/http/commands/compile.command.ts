@@ -1,12 +1,8 @@
 import { CLIResult } from "../../../../../src/modules/cli/cli-result";
-import { readFile, writeFile } from "fs/promises";
 import HttpFeature from "../http.feature";
 import TypescriptProject from "@/projects/typescript";
 import { Environment } from "@/features/env";
 import OpenAIFeature from "@/features/openai";
-import { HTTPEndpointTypeInferrerMindset } from "../openai/mindsets/http-endpoint-type-inferrer.mindset";
-import { FsUtils } from "@/src/modules/utils/fs-utils";
-import vscodeOpen from "@/src/modules/vscode/vscodeOpen";
 
 export default async function compileCommand(
     [moduleName, endpoint]: string[],

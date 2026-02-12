@@ -28,4 +28,11 @@ export class FsUtils {
             );
         }
     }
+
+    static async listSubdirectories(path: string): Promise<string[]> {
+        const dirents = await import("fs/promises").then(fs => fs.readdir(path, { withFileTypes: true }));
+        return dirents
+            .filter(dirent => dirent.isDirectory())
+            .map(dirent => dirent.name);
+    }
 }

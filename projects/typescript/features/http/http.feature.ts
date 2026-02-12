@@ -10,6 +10,11 @@ import { $throw, CustomErrors } from "@/features/errors";
 import { FsUtils } from "@/src/modules/utils/fs-utils";
 import { join } from "path";
 import { HTTPNorton } from "./classes/http-norton.class";
+import { readdir } from "fs/promises";
+import { readFile } from "fs/promises";
+import { createContext, runInContext } from "vm";
+import { JSONFile } from "@/src/modules/files/json-file";
+import { HttpRoute } from "./types/HttpRoute.type";
 
 const Errors = CustomErrors({
     HttpEndpointNotFound: "The HTTP endpoint {endpoint} was not found in module {module}."
@@ -24,7 +29,9 @@ export default class HttpFeature extends Feature<TypescriptProject> {
     version () { return "0.0.1"; }
 
     async init () {
-        
+        this.project.install([
+            "express", "cors"
+        ])
     }
 
     async compile (moduleName: string, endpoint: string) {
@@ -36,8 +43,10 @@ export default class HttpFeature extends Feature<TypescriptProject> {
         
         const result = await this.parseTSDefinition(endpointContent)
         const targetDir = this.workdirFeatureSubpath("endpoints", `${moduleName}`);
-        const targetPath = join(targetDir, `${endpoint}.http-meta.ts`); 
+        const targetPath = join(targetDir, `${endpoint}.http-meta.ts`);
+        const targetJsonPath = join(targetDir, `${endpoint}.http-meta.json`);
         const zodDefinition = await this.zod.parseTSDefinition(result.typeOutput, { anonymous: true });
+        const comments = this.extractComments(endpointContent);
 
         await FsUtils.createTree({ [targetDir]: [] });
 
@@ -46,7 +55,7 @@ export default class HttpFeature extends Feature<TypescriptProject> {
             "import { HTTPEndpoint } from '../../classes/http-endpoint.class';\n" +
             "import * as z from 'zod/v4';\n\n" +
             result.typeOutput + "\n\n" +
-            result.paramsOutput + "\n\n" +
+            "const Params = " + result.paramsOutput + ";\n\n" +
             `const Validator = ${zodDefinition};\n\n` + 
             `export default new HTTPEndpoint<${result.typeName}>({\n` +
             "    inputValidator: Validator,\n" +
@@ -55,7 +64,59 @@ export default class HttpFeature extends Feature<TypescriptProject> {
             "});"
         )
 
+        
+        await new JSONFile(targetJsonPath).write({
+            module: moduleName,
+            endpoint: endpoint,
+            path: `${moduleName}/${endpoint}`,
+            params: JSON.parse(result.paramsOutput.substring(result.paramsOutput.indexOf("["), result.paramsOutput.lastIndexOf("]") + 1)),
+            comments: comments
+        });
+
         this.log(`HTTP endpoint ${moduleName}:${endpoint} compiled successfully`);
+    }
+
+    extractComments (source: string) {
+        if (!source) return "";
+
+        const exportDefaultFunctionRegex = /export\s+default\s+(?:async\s+)?function\b/;
+        const exportDefaultRegex = /export\s+default\b/;
+        const functionRegex = /\bfunction\b/;
+
+        let boundaryIndex = source.length;
+        let match: RegExpExecArray | null;
+
+        if ((match = exportDefaultFunctionRegex.exec(source))) {
+            boundaryIndex = match.index;
+        } else if ((match = exportDefaultRegex.exec(source))) {
+            boundaryIndex = match.index;
+        } else if ((match = functionRegex.exec(source))) {
+            boundaryIndex = match.index;
+        }
+
+        const header = source.slice(0, boundaryIndex);
+        const commentRegex = /\/\/[^\n\r]*|\/\*[\s\S]*?\*\//g;
+        const comments: string[] = [];
+
+        while ((match = commentRegex.exec(header))) {
+            const comment = match[0];
+
+            if (comment.startsWith("//")) {
+                const line = comment.slice(2).trim();
+                if (line) comments.push(line);
+                continue;
+            }
+
+            const body = comment.slice(2, -2);
+            const lines = body.split(/\r?\n/).map(line => line.replace(/^\s*\*?\s?/, "").trim());
+            const cleaned = lines.join("\n").trim();
+
+            if (cleaned) {
+                comments.push(cleaned);
+            }
+        }
+
+        return comments.join("\n").trim();
     }
 
     async compileAll () {
@@ -93,6 +154,41 @@ export default class HttpFeature extends Feature<TypescriptProject> {
             typeOutput: string,
             paramsOutput: string
         };
+    }
+
+    async endpoints () {
+        const routes: Record<string, HttpRoute> = {};
+
+        const routesFolder = this.workdirFeatureSubpath("endpoints");
+        const moduleNames = await FsUtils.listSubdirectories(routesFolder);
+
+        for (const moduleName of moduleNames) {
+            const moduleFolder = join(routesFolder, moduleName);
+            const endpointFiles = await readdir(moduleFolder);
+
+            for (const file of endpointFiles) {
+                if (!file.endsWith(".http-meta.json")) continue;
+
+                const content = JSON.parse(await readFile(join(moduleFolder, file), "utf-8"));
+
+                if (!routes[moduleName]) {
+                    routes[moduleName] = {
+                        name: moduleName,
+                        endpoints: []
+                    };
+                }
+
+                routes[moduleName].endpoints.push({
+                    route: moduleName,
+                    endpoint: content.endpoint,
+                    path: content.path,
+                    comments: content.comments,
+                    params: content.params
+                });
+            }
+        }
+        
+        return Object.values(routes);
     }
 
     

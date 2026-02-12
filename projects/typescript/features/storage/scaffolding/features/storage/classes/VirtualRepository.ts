@@ -2,7 +2,6 @@ import { Table } from "./Table";
 import { Schema } from "./Schema";
 import { $assert, CustomErrors } from "@/features/errors";
 import { KeyValue } from "./KeyValue";
-import { AsyncSubscription } from "../../async/classes/AsyncSubscription";
 import { TableQuery } from "../types/TableQuery.type";
 
 export const VirtualRepositoryErrors = CustomErrors({
@@ -18,7 +17,6 @@ export class VirtualRepository<T, ID> {
 
     readonly table: Table<T, ID>;
     readonly kv: KeyValue<T, ID>;
-    readonly listeners: AsyncSubscription<any>[] = [];
     readonly schema: Schema<T, ID>;
 
     constructor (options: VirtualRepositoryOptions<T, ID>) {
@@ -29,20 +27,9 @@ export class VirtualRepository<T, ID> {
         this.schema = options.table.schema;
     }
 
-    init () {
-        this.listeners.push(
-            this.table.$create.subscribe(item => this.onSet(item)),
-            this.table.$delete.subscribe(id => this.onDelete(id)),
-            this.table.$set.subscribe(item => this.onSet(item)),
-            this.table.$update.subscribe(id => this.onUpdate(id)),
-            this.table.$updateOne.subscribe(id => this.onUpdate(id)),
-            this.table.$updateMany.subscribe(ids => this.onUpdateMany(ids))
-        )
-    }
+    init () {}
 
-    destroy () {
-        this.listeners.forEach(listener => listener.unsubscribe());
-    }
+    destroy () {}
 
     async onSet (item: T) {
         await this.kv.set(this.schema.itemId(item), item);
@@ -77,26 +64,35 @@ export class VirtualRepository<T, ID> {
 
     async set (id: ID, item: T) {
         await this.table.set(id, item);
+        await this.onSet(item);
     }
 
     async create (item: T) {
-        return await this.table.create(item);
+        const result = await this.table.create(item);
+
+        await this.onSet(item);
+
+        return result;
     }
 
     async delete (id: ID) {
         await this.table.delete(id);
+        await this.onDelete(id);
     }
 
     async update (id: ID, item: Partial<T>) {
         await this.table.update(id, item);
+        await this.onUpdate(id);
     }
 
     async updateOne (query: TableQuery<T>, item: T) {
         await this.table.updateOne(query, item);
+        await this.onUpdate(this.schema.itemId(item));
     }
 
     async updateMany (query: TableQuery<T>, item: T) {
         await this.table.updateMany(query, item);
+        await this.onUpdateMany((await this.table.find(query)).map(i => this.schema.itemId(i)));
     }
 
     async getMany (ids: ID[]) {
@@ -112,10 +108,13 @@ export class VirtualRepository<T, ID> {
     }
 
     async deleteOne (query: TableQuery<T>) {
-        await this.table.deleteOne(query);
+        const item = await this.table.deleteOne(query);
+        if (item) await this.onDelete(item);
     }
 
     async deleteMany (query: TableQuery<T>) {
-        await this.table.deleteMany(query);
+        const ids = await this.table.deleteMany(query);
+
+        await this.onUpdateMany(ids);
     }
 }

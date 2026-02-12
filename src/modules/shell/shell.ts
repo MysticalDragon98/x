@@ -1,4 +1,4 @@
-import { exec } from "child_process";
+import { exec, spawnSync } from "child_process";
 
 export class Shell {
   
@@ -20,5 +20,10 @@ export class Shell {
     static shellName () {
       return process.env.SHELL_NAME || "default";
     }
-    
+
+    static isCliAvailable(cmd: string): boolean {
+      const checker = process.platform === "win32" ? "where" : "which";
+      const result = spawnSync(checker, [cmd], { stdio: "ignore" });
+      return result.status === 0;
+    }
 }

@@ -10,6 +10,7 @@ interface HTTPEndpointOptions<T> {
         default?: string;
     }[],
     exec: (...input: any[]) => any;
+    description: string
 }
 
 export class HTTPEndpoint<T> {

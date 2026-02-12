@@ -21,10 +21,12 @@ export const HTTPEndpointTypeInferrerMindset = new Mindset({
         };
 
         const Params = [
-            { name: "a", type: "number", required: true },
-            { name: "b", type: "string", required: false },
-            { name: "c", type: "number", required: true, default: 2 }
+            { "name": "a", "type": "number", "required": true },
+            { "name": "b", "type": "string", "required": false },
+            { "name": "c", "type": "number", "required": true, "default": 2 }
         ];
+
+        Params array must be a valid JSON and all properties must be double quoted
     `,
 
     schema: {

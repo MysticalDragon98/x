@@ -11,10 +11,7 @@ export default async function compileCommand([]: string[], named: any, { project
         // Open the generated file in VS Code
         // await vscodeOpen(outputFile);
 
-        return CLIResult.success(
-            `✨ Successfully compiled all HTTP endpoints.`,
-            {}
-        );
+        return CLIResult.success(`✨ Successfully compiled all HTTP endpoints.`, {});
     } catch (error) {
         return CLIResult.fromError(error);
     }

@@ -6,14 +6,14 @@ import { StringUtils } from "@/src/modules/utils/string-utils";
 import vscodeOpen from "@/src/modules/vscode/vscodeOpen";
 import TypescriptProject from "@/projects/typescript";
 
-export default async function entityCommand(
-    [moduleName, entityName]: string[],
+export default async function dataTypeCommand(
+    [moduleName, dataTypeName]: string[],
     named: any,
     { project, feature }: { project: TypescriptProject; feature: StorageFeature }
 ): Promise<CLIResult> {
-    if (!moduleName || !entityName) {
+    if (!moduleName || !dataTypeName) {
         return CLIResult.error({
-            MissingArguments: "Both moduleName and entityName arguments are required"
+            MissingArguments: "Both moduleName and dataTypeName arguments are required"
         });
     }
 
@@ -26,20 +26,20 @@ export default async function entityCommand(
 
     const module = feature.std.module(moduleName);
     await FsUtils.createTree({
-        [module.subpath()]: ["entities"]
+        [module.subpath()]: ["data-type"]
     });
 
-    const entityFilePath = module.subpath("entities", `${entityName}.entity.ts`);
-    const file = Bun.file(entityFilePath);
+    const dataTypeFilePath = module.subpath("data-type", `${dataTypeName}.data-type.ts`);
+    const file = Bun.file(dataTypeFilePath);
 
     if (await file.exists()) {
         return CLIResult.error({
-            EntityExists: `Entity ${entityName} already exists in module ${moduleName}`
+            DataTypeExists: `Data type ${dataTypeName} already exists in module ${moduleName}`
         });
     }
 
-    const className = StringUtils.pascalCase(entityName);
-    const entityContent = [
+    const className = StringUtils.pascalCase(dataTypeName);
+    const dataTypeContent = [
         "import { Token } from \"@/features/storage/decorators/token.decorator\";",
         "import { $assert, CustomErrors } from \"@/features/errors\";",
         "",
@@ -53,15 +53,15 @@ export default async function entityCommand(
         "}"
     ].join("\n");
 
-    await writeFile(entityFilePath, entityContent);
-    await vscodeOpen(entityFilePath);
+    await writeFile(dataTypeFilePath, dataTypeContent);
+    await vscodeOpen(dataTypeFilePath);
 
     return CLIResult.success(
-        `✨ Successfully created entity ${entityName} in module ${moduleName} in project ${project.name}!`,
+        `✨ Successfully created data type ${dataTypeName} in module ${moduleName} in project ${project.name}!`,
         {
             moduleName,
-            entityName,
-            filePath: entityFilePath
+            dataTypeName,
+            filePath: dataTypeFilePath
         }
     );
 }
