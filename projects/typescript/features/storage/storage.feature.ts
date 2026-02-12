@@ -10,7 +10,7 @@ export default class StorageFeature extends Feature<TypescriptProject> {
     readonly utils = this.inject<UtilsFeature>(UtilsFeature);
     
     name () { return "storage"; }
-    version () { return "0.1.1"; }
+    version () { return "0.1.2"; }
 
     async init () {}
     

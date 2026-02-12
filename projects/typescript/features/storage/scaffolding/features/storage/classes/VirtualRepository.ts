@@ -3,6 +3,8 @@ import { Schema } from "./Schema";
 import { $assert, CustomErrors } from "@/features/errors";
 import { KeyValue } from "./KeyValue";
 import { TableQuery } from "../types/TableQuery.type";
+import { Memory } from "./MemoryStore";
+import MongoDbFeature from "@/features/mongodb";
 
 export const VirtualRepositoryErrors = CustomErrors({
     TableSchemasNotEqual: (table: string, keyValue: string) => `Table and key value schemas must be the same for virtual repository '${table}' and '${keyValue}'`
@@ -27,7 +29,9 @@ export class VirtualRepository<T, ID> {
         this.schema = options.table.schema;
     }
 
-    init () {}
+    async init () {
+        await this.table.init();
+    }
 
     destroy () {}
 
@@ -117,4 +121,5 @@ export class VirtualRepository<T, ID> {
 
         await this.onUpdateMany(ids);
     }
+
 }
