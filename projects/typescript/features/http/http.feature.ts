@@ -3,6 +3,7 @@ import Queues from "../../../../features/queue/index";
 import TypescriptProject from "../..";
 import StdFeature from "../std/std.feature";
 import ZodFeature from "../zod/zod.feature";
+import EnvFeature from "../env/env.feature";
 import { HTTPEndpointTypeInferrerMindset } from "./openai/mindsets/http-endpoint-type-inferrer.mindset";
 import OpenAIFeature from "@/features/openai";
 import { TextFile } from "@/src/modules/files/text-file";
@@ -24,6 +25,7 @@ export default class HttpFeature extends Feature<TypescriptProject> {
     
     readonly std = this.inject<StdFeature>(StdFeature);
     readonly zod = this.inject<ZodFeature>(ZodFeature);
+    readonly env = this.inject<EnvFeature>(EnvFeature);
 
     name () { return "http"; }
     version () { return "0.0.1"; }
@@ -31,7 +33,8 @@ export default class HttpFeature extends Feature<TypescriptProject> {
     async init () {
         this.project.install([
             "express", "cors"
-        ])
+        ]);
+        await this.env.addEnvvar('HTTP_PORT');
     }
 
     async compile (moduleName: string, endpoint: string) {

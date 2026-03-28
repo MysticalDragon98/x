@@ -5,6 +5,7 @@ import { $assert, CustomErrors } from "../errors";
 import { HTTPServer } from "./classes/http-server.class";
 import LogsFeature from "../logs";
 import { HTTPEndpoint } from "./classes/http-endpoint.class";
+import { Environment } from "../env";
 
 const log = LogsFeature.logger("@features/http");
 const Errors = CustomErrors({
@@ -16,7 +17,7 @@ export class HTTPFeature {
 
     static server?: HTTPServer;
 
-    static async init ({ port }: { port: string }) {
+    static async init ({ port = Environment.HttpPort }: { port?: string } = {}) {
         const endpointsFolder = 'features/http/endpoints';
         const modules = await readdir(endpointsFolder);
         const modulePaths = modules
