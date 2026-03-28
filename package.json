@@ -13,6 +13,7 @@
     "devDependencies": {
         "@types/debug": "^4.1.12",
         "@types/node": "^22.15.15",
+        "@types/picomatch": "^4.0.2",
         "plop": "^4.0.1",
         "typescript": "^5.8.3"
     },
@@ -27,6 +28,7 @@
         "minimist": "^1.2.8",
         "node-plop": "^0.32.0",
         "openai": "^5.8.2",
+        "picomatch": "^4.0.4",
         "tsconfig-paths": "^4.2.0"
     }
 }

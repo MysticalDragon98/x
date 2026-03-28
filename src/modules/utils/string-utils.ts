@@ -17,6 +17,15 @@ export class StringUtils {
         return this.snakeCase(text).toUpperCase();
     }
 
+    static bumpVersion (version: string, type: "patch" | "minor" | "major"): string {
+        const [major, minor, patch] = version.split(".").map(Number);
+        switch (type) {
+            case "major": return `${major + 1}.0.0`;
+            case "minor": return `${major}.${minor + 1}.0`;
+            case "patch": return `${major}.${minor}.${patch + 1}`;
+        }
+    }
+
     static camelCase (text: string) {
         return text
             .replace(/([-_][a-z])/g, (group) => group.toUpperCase().replace('-', '').replace('_', ''))

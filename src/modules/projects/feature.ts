@@ -1,7 +1,9 @@
 import debug from "debug";
 import { Project } from "./project";
-import { cp, mkdir } from "fs/promises";
-import { join } from "path";
+import { cp, mkdir, readdir, readFile, writeFile, stat } from "fs/promises";
+import { join, dirname } from "path";
+import picomatch from "picomatch";
+import { StringUtils } from "../utils/string-utils";
 
 export abstract class Feature<P extends Project> {
 
@@ -68,6 +70,96 @@ export abstract class Feature<P extends Project> {
 
     workdirFeatureSubpath (...paths: string[]) {
         return this.project.workdirSubpath("features", this.name(), ...paths);
+    }
+
+    updatePaths (): string[] {
+        return [];
+    }
+
+    async update ({ bump = "patch" }: { bump?: "patch" | "minor" | "major" } = {}) {
+        this.log(`Updating scaffolding for feature ${this.name()}`);
+
+        const patterns = this.updatePaths();
+        if (patterns.length === 0) {
+            this.log(`Feature ${this.name()} has no updatePaths defined, skipping`);
+            return { updated: 0, version: this.version(), skipped: true };
+        }
+
+        const files = await this.#resolveUpdateFiles();
+
+        for (const { workdirPath, scaffoldingPath } of files) {
+            await mkdir(dirname(scaffoldingPath), { recursive: true });
+            await cp(workdirPath, scaffoldingPath);
+        }
+
+        const newVersion = StringUtils.bumpVersion(this.version(), bump);
+        await this.#bumpVersionInSource(newVersion);
+        await this.project.setFeatureVersion(this.name(), newVersion);
+
+        this.log(`Updated ${files.length} files, version: ${this.version()} -> ${newVersion}`);
+        return { updated: files.length, version: newVersion, skipped: false };
+    }
+
+    async #resolveUpdateFiles (): Promise<{ workdirPath: string, scaffoldingPath: string }[]> {
+        const patterns = this.updatePaths();
+        if (patterns.length === 0) return [];
+
+        const includePatterns = patterns.filter(p => !p.startsWith("!"));
+        const excludePatterns = patterns.filter(p => p.startsWith("!")).map(p => p.slice(1));
+
+        const isIncluded = picomatch(includePatterns);
+        const isExcluded = excludePatterns.length > 0 ? picomatch(excludePatterns) : () => false;
+
+        const scaffoldingDir = this.featureSubpath("scaffolding");
+        const workdir = this.project.workdirSubpath();
+
+        // Extract base directories from include patterns to avoid scanning the entire workdir
+        const baseDirs = new Set<string>();
+        for (const pattern of includePatterns) {
+            const base = picomatch.scan(pattern).base || ".";
+            baseDirs.add(base);
+        }
+
+        const resolvedFiles: { workdirPath: string, scaffoldingPath: string }[] = [];
+
+        for (const baseDir of baseDirs) {
+            const scanDir = join(workdir, baseDir);
+            let entries: string[];
+            try {
+                entries = (await readdir(scanDir, { recursive: true })) as string[];
+            } catch { continue; }
+
+            for (const entry of entries) {
+                const fullPath = join(scanDir, entry);
+                try {
+                    const stats = await stat(fullPath);
+                    if (!stats.isFile()) continue;
+                } catch { continue; }
+
+                const relativePath = join(baseDir, entry);
+
+                if (isIncluded(relativePath) && !isExcluded(relativePath)) {
+                    resolvedFiles.push({
+                        workdirPath: fullPath,
+                        scaffoldingPath: join(scaffoldingDir, relativePath)
+                    });
+                }
+            }
+        }
+
+        return resolvedFiles;
+    }
+
+    async #bumpVersionInSource (newVersion: string) {
+        const featureFilePath = this.featureSubpath(`${this.name()}.feature.ts`);
+        const content = await readFile(featureFilePath, "utf-8");
+
+        const updated = content.replace(
+            /(version\s*\(\)\s*\{[^}]*return\s*["'])([^"']+)(["'])/,
+            `$1${newVersion}$3`
+        );
+
+        await writeFile(featureFilePath, updated);
     }
 
     async #setupScaffolding () {
