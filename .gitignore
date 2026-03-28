@@ -4,3 +4,4 @@ dist
 .meta/identity
 node_modules
 !projects/ags/scaffolding/node_modules
+.storage/
