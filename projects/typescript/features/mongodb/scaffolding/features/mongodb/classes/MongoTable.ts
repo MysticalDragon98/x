@@ -34,8 +34,11 @@ export class MongoTable<T, ID> extends Table<T, ID> {
     protected async _init () {}
     protected async _listIndexes () {
         const collection = this.#store.collection(this.name);
-        const indexes = await collection.indexes();
-        
+        const indexes = await collection.indexes().catch(exc => {
+            if (exc.code === 26) return [];
+            throw exc;
+        });
+
         return indexes.filter(index => !!index.name && index.name !== "_id_").map(index => new Index<T>({
             name: index.name!,
             unique: index.unique,
@@ -47,7 +50,10 @@ export class MongoTable<T, ID> extends Table<T, ID> {
 
     protected async _dropIndex (name: string) {
         const collection = this.#store.collection(this.name);
-        await collection.dropIndex(name);
+        await collection.dropIndex(name).catch(exc => {
+            if (exc.code === 26) return;
+            throw exc;
+        });
     }
 
     protected async _createIndex (index: Index<T>) {
@@ -66,6 +72,30 @@ export class MongoTable<T, ID> extends Table<T, ID> {
             $assert(exc.code !== 11000, TableErrors.ItemAlreadyExists(this.name, data[this.schema.id]));
             throw exc;
         });
+    }
+
+    protected async _upsert (data: T) {
+        const collection = this.#store.collection(this.name);
+
+        await collection.updateOne(
+            { [this.schema.id]: (data as any)[this.schema.id] },
+            { $set: data as T & { _id: never } },
+            { upsert: true }
+        );
+    }
+
+    protected async _upsertMany (data: T[]) {
+        const collection = this.#store.collection(this.name);
+
+        await collection.bulkWrite(
+            data.map(item => ({
+                updateOne: {
+                    filter: { [this.schema.id]: (item as any)[this.schema.id] },
+                    update: { $set: item as T & { _id: never } },
+                    upsert: true
+                }
+            }))
+        );
     }
 
     protected async _get (id: any): Promise<T | null> {

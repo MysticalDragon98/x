@@ -33,6 +33,8 @@ export abstract class Table<T, ID> {
     protected abstract _get (id: ID): Promise<T | null>;
     protected abstract _set (id: ID, data: Partial<T>): Promise<void>;
     protected abstract _update (id: ID, data: Partial<T>): Promise<void>;
+    protected abstract _upsert (data: T): Promise<void>;
+    protected abstract _upsertMany (data: T[]): Promise<void>;
     protected abstract _delete (id: ID): Promise<void>;
     protected abstract _getMany (ids: ID[]): Promise<T[]>;
 
@@ -106,6 +108,25 @@ export abstract class Table<T, ID> {
 
         this.idFieldType().validate(id);
         await this._update(this.idFieldType().serialize(id), this.schema.serializePartial(data));
+    }
+
+    async upsert (data: T) {
+        logger.debug(`Upserting item in table ${this.name}`);
+
+        const object = this.schema.serialize(data);
+        await this._upsert(object);
+
+        return data;
+    }
+
+    async upsertMany (data: T[]) {
+        logger.debug(`Upserting ${data.length} items in table ${this.name}`);
+        if (data.length === 0) return [];
+        
+        const objects = data.map(item => this.schema.serialize(item));
+        await this._upsertMany(objects);
+
+        return data;
     }
 
     async delete (id: ID) {

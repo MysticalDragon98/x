@@ -10,8 +10,11 @@ export default class StorageFeature extends Feature<TypescriptProject> {
     readonly utils = this.inject<UtilsFeature>(UtilsFeature);
     
     name () { return "storage"; }
-    version () { return "0.1.2"; }
+    version () { return "0.1.3"; }
 
     async init () {}
     
+    updatePaths(): string[] {
+        return ["features/storage/**/*"];
+    }
 }

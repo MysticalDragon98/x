@@ -40,14 +40,14 @@ const Errors = CustomErrors({
 });
 
 TokenMetadata.set(Date, {
-    fieldType: new FieldType<Date, string>({
+    fieldType: new FieldType<Date, Date>({
         name: 'Date',
         validate () {},
-        serialize: (value: Date) => value.toUTCString(),
-        deserialize: (value: string) => {
+        serialize: (value: Date) => value,
+        deserialize: (value: Date) => {
             const date = new Date(value);
 
-            $assert(!isNaN(date.getTime()), Errors.InvalidDate(value));
+            $assert(!isNaN(date.getTime()), Errors.InvalidDate(String(value)));
 
             return date;
         }

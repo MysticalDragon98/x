@@ -14,12 +14,16 @@ export default class MongoDBFeature extends Feature<TypescriptProject> {
     readonly env = this.inject<EnvFeature>(EnvFeature);
     
     name () { return "mongodb"; }
-    version () { return "0.0.1"; }
+    version () { return "0.0.2"; }
 
     async init () {
         this.project.install([ "mongodb" ]);
 
         this.env.addEnvvar('MongoUrl', { required: true })
+    }
+
+    updatePaths(): string[] {
+        return ["features/mongodb/**/*"];
     }
     
 }
