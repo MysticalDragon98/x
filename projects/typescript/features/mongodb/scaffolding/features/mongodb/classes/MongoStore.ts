@@ -25,11 +25,15 @@ export class MongoStore extends Store<MongoConnectOptions> {
     }
 
     table<T, ID> (name: string, schema: Schema<T, ID>) {
-        return new MongoTable<T, ID>({
+        const table = new MongoTable<T, ID>({
             store: this,
             name,
             schema
         });
+
+        table.init();
+
+        return table;
     }
 
     keyValue<T, ID>(name: string, schema: Schema<T, ID>): any {

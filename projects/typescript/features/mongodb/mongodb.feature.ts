@@ -14,7 +14,7 @@ export default class MongoDBFeature extends Feature<TypescriptProject> {
     readonly env = this.inject<EnvFeature>(EnvFeature);
     
     name () { return "mongodb"; }
-    version () { return "0.0.2"; }
+    version () { return "0.0.3"; }
 
     async init () {
         this.project.install([ "mongodb" ]);

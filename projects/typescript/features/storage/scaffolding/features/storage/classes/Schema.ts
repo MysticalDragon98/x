@@ -17,6 +17,7 @@ export interface SchemaOptions<T> {
     indexes?: Index<T>[];
     id: keyof T;
     name: string;
+    constructor?: new (...args: any[]) => T;
 }
 
 export class Schema<T, ID> {
@@ -25,12 +26,14 @@ export class Schema<T, ID> {
     readonly id: keyof T;
     readonly fields: { [K in keyof T]: Field<T[K]> };
     readonly indexes: Index<T>[];
+    readonly _constructor?: new (...args: any[]) => T;
 
     constructor (options: SchemaOptions<T>) {
         this.fields = options.fields;
         this.indexes = options.indexes ?? [];
         this.id = options.id;
         this.name = options.name;
+        this._constructor = options.constructor;
     }
 
     deserialize (data: T) {
@@ -49,11 +52,13 @@ export class Schema<T, ID> {
 
                 continue;
             }
-
+            
+            if (data[key] === undefined && !field.required) continue;
             result[key] = field.type.deserialize(data[key]);
             field.type.validate(result[key]!);
         }
 
+        if (this._constructor) return new this._constructor(result);
         return result as T;
     }
 
@@ -78,7 +83,7 @@ export class Schema<T, ID> {
             field.type.validate(data[key]!);
             result[key] = field.type.serialize(data[key]);
         }
-
+        
         return result as T;
     }
 
@@ -165,6 +170,7 @@ export class Schema<T, ID> {
         return new Schema<C, T>(<any>{
             id: metadata.id!,
             name: constructor.name,
+            constructor: constructor,
             fields: Objects.map(fields!, (field: any, fieldName: string) => new Field({
                 name: fieldName,
                 type: FieldType.fromClass(field.class),
