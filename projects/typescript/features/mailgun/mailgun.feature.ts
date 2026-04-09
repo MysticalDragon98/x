@@ -17,5 +17,10 @@ export default class MailgunFeature extends Feature<TypescriptProject> {
         await this.#env.addEnvvar("MailgunApiKey", { required: true });
         await this.#env.addEnvvar("MailgunDomain", { required: true });
         await this.#env.addEnvvar("MailgunFrom", { required: true });
+
+        await this.addInitializer(
+            `import { MailgunFeature } from "./features/mailgun";`,
+            `MailgunFeature.init(),`
+        );
     }
 }

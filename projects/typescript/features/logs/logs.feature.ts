@@ -14,5 +14,10 @@ export default class LogsFeature extends Feature<TypescriptProject> {
         await this.project.installDev(["@types/debug"]);
 
         await this.#env.addEnvvar("DebugLevel", { required: false });
+
+        await this.addInitializer(
+            `import LogsFeature from "./features/logs";`,
+            `LogsFeature.init(),`
+        );
     }
 }

@@ -1,24 +1,67 @@
-# Storage Feature
+# Storage (DDD)
 
-Storage is the feature that manages all data flow in applications
+1. Storage types follow DDD.
+2. Entities have identity, are mutable only through methods, and are persisted at `entities/{Name}.entity.ts`.
+3. Values have no identity, are immutable, and are stored at `values/{Name}.value.ts`.
+4. Entity properties must be `public`; mutations must go through methods.
+5. Values should prefer normalization over throwing when normalization does not change semantics.
 
-1) Storage data types must follow the DDD pattern and each one must be a validated object itself with its business logic embedded
-2) Value Objects (Values) and Entities belongs to modules and must be stored in ./src/{module} as /values/{name}.value.ts and /entities/{name}.entity.ts respectively
-3) Entities and Values are defined with the @Token decorator from features/storage/decorators/token.decorator
-4) The @Token decorator receives a **primitive type** that is the one that is extending the data type and will be serialized into when storing. If its a complex object, you want to use Object
-5) the @Token decorator can receive the following options
-- description?: One liner description for business logic context. Only meaning, not logic.
-- id? (Mandatory in Entities): Defines which is the primary key on the object
-- indexes? (Optional and only valid in Entities): Defines valuable indexes for searches, normally starts empty and it grows overtime
+## Entity Template
 
-6) Given the class
-@Token<X>()
-class T {}
+```ts
+import { Token } from "@features/storage/decorators/token.decorator";
+import { Index } from "@features/storage/classes/Index";
+import { Field } from "@features/storage/decorators/field.decorator";
 
-The @Token contract needs the @Token decorated class to implement the following methods.
+@Token<Object>({
+  description: "One liner description",
+  id: "idPropertyName",
+  indexes: [new Index({ name: "indexName", fields: { fieldName: "asc" } })]
+})
+export class EntityName {
 
-- static serialize (_: T): X
-- static deserialize (_: X): T
+  @Field(FieldType, { optional: true, index: true, unique: true })
+  fieldName: FieldType;
 
-And the following fields are valuable for inspection in NON Object @Tokens
-- static toString ()
+  @Field([FieldType])
+  arrayField: FieldType[];
+
+  constructor(properties: { fieldName: FieldType; arrayField: FieldType[] }) {
+    for (const [key, value] of Object.entries(properties)) {
+      this[key] = value;
+    }
+  }
+
+}
+```
+
+Notes:
+- Use the `indexes` array only for compound or complex indexes.
+- For simple indexes, prefer `@Field(T, { index: true })`.
+- For arrays, wrap the decorator type as `[FieldType]` and keep the TypeScript field typed as `FieldType[]`.
+- Constructors receive a single object containing every field.
+
+## Value Templates
+
+Object-based values use the same pattern as entities but omit `id` and `indexes` from `@Token(...)`.
+
+Primitive-based values extend the boxed primitive type:
+
+```ts
+@Token<PrimitiveType>({
+  description: "One liner description"
+})
+export class ValueName extends PrimitiveType {
+
+  constructor(value: PrimitiveType) {
+    super(value);
+  }
+
+}
+```
+
+## Index Files
+
+1. Domain object indexes live at `src/modules/{module}/entities/INDEX.md` or `src/modules/{module}/values/INDEX.md`.
+2. Update `INDEX.md` whenever an entity or value is created or modified.
+3. Format each line as `{NAME}: {DESCRIPTION}`.

@@ -11,6 +11,8 @@ export interface AuthOptions {
 
 export { CodeAuthenticator } from "./classes/CodeAuthenticator.class";
 export { LogCodeAuthenticator } from "./classes/LogCodeAuthenticator.class";
+export { OAuthProvider } from "./classes/OAuthProvider.class";
+export type { OAuthUserInfo } from "./classes/OAuthProvider.class";
 
 export class Auth {
 

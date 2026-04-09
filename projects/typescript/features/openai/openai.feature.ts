@@ -18,6 +18,11 @@ export default class OpenAIFeature extends Feature<TypescriptProject> {
     async init () {
         await this.project.install(["openai"]);
         await this.#env.addEnvvar("OpenAiKey", { required: true });
+
+        await this.addInitializer(
+            `import OpenAIFeature from "./features/openai";`,
+            `OpenAIFeature.init(),`
+        );
     }
 
     async addMindset (name: string) {

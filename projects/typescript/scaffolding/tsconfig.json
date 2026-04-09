@@ -9,6 +9,7 @@
         "outDir": "dist",
         "experimentalDecorators": true,
         "baseUrl": ".",
+        "types": ["@types/node"],
         "paths": {
             "@/*": [
                 "*"

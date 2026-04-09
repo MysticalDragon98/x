@@ -7,6 +7,9 @@ export default class GoogleSheetsFeature extends Feature<TypescriptProject> {
     version () { return "1.0.0"; }
 
     async init () {
-        
+        await this.addInitializer(
+            `import GoogleSheetsFeature from "./features/google-sheets";`,
+            `GoogleSheetsFeature.init(),`
+        );
     }
 }

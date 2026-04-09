@@ -35,6 +35,11 @@ export default class HttpFeature extends Feature<TypescriptProject> {
             "express", "cors"
         ]);
         await this.env.addEnvvar('HTTP_PORT');
+
+        await this.addInitializer(
+            `import { HTTPFeature } from "./features/http";`,
+            `HTTPFeature.init(),`
+        );
     }
 
     async compile (moduleName: string, endpoint: string) {

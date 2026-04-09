@@ -15,5 +15,10 @@ export default class MongoFeature extends Feature<TypescriptProject> {
         await this.project.install(["mongoose"]);
         await this.project.installDev(["@types/mongoose"]);
         await this.env.addEnvvar("MongoUrl", { required: true });
+
+        await this.addInitializer(
+            `import { MongoFeature } from "./features/mongo";`,
+            `MongoFeature.init(),`
+        );
     }
 }

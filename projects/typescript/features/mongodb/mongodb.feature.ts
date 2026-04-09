@@ -19,7 +19,12 @@ export default class MongoDBFeature extends Feature<TypescriptProject> {
     async init () {
         this.project.install([ "mongodb" ]);
 
-        this.env.addEnvvar('MongoUrl', { required: true })
+        this.env.addEnvvar('MongoUrl', { required: true });
+
+        await this.addInitializer(
+            `import MongoDbFeature from "./features/mongodb";`,
+            `MongoDbFeature.init(),`
+        );
     }
 
     updatePaths(): string[] {

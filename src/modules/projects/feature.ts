@@ -4,6 +4,7 @@ import { cp, mkdir, readdir, readFile, writeFile, stat } from "fs/promises";
 import { join, dirname } from "path";
 import picomatch from "picomatch";
 import { StringUtils } from "../utils/string-utils";
+import { TextFile } from "../files/text-file";
 
 export abstract class Feature<P extends Project> {
 
@@ -160,6 +161,12 @@ export abstract class Feature<P extends Project> {
         );
 
         await writeFile(featureFilePath, updated);
+    }
+
+    async addInitializer (importLine: string, initCall: string) {
+        const indexFile = new TextFile(this.project.workdirSubpath("index.ts"));
+        await indexFile.insertTagLine("Imports", importLine);
+        await indexFile.insertTagLine("Initialize", initCall);
     }
 
     async #setupScaffolding () {

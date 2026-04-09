@@ -56,12 +56,12 @@ export class CodeAuthenticator {
         this.sendCode = options.sendCode;
     }
 
-    async requestCode(destination: string): Promise<void> {
+    async requestCode(destination: string): Promise<string> {
         const now = Date.now();
 
         const existing = this.store.get(destination);
         if (existing && now - existing.lastSentAt < this.refreshInterval) {
-            return;
+            return existing.code;
         }
 
         const code = this.generateCode();
@@ -74,6 +74,8 @@ export class CodeAuthenticator {
         });
 
         await this.sendCode(code, destination);
+
+        return code;
     }
 
     verifyCode(destination: string, code: string): true {
